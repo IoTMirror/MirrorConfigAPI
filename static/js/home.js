@@ -82,9 +82,7 @@ function getMouseGridPos(panel, point){
     };
 }
 
-function getWidgetOnPoint(panel, point){
-    var gridPos = getMouseGridPos(panel, point);
-    console.log("Grid pos: " + gridPos.x + " " + gridPos.y);
+function getWidgetOnPoint(panel, gridPos){
     for (var i = 0; i < panel.widgets.length; i++){
 	var widget = panel.widgets[i];
 	if (widget.WidgetPosition.X <= gridPos.x &&
@@ -114,11 +112,12 @@ function sendWidgetUpdate(widget){
 
 function onWidgetPanelMouseDown(event, panel){
     var mousePos = {x: event.offsetX, y: event.offsetY};
-    var widget = getWidgetOnPoint(panel, mousePos);
+    var gridPos = getMouseGridPos(panel, mousePos);
+    var widget = getWidgetOnPoint(panel, gridPos);
     if (widget){
 	panel.isDragging = true;
 	panel.draggedWidget = widget;
-	panel.dragStart = mousePos;
+	panel.dragStart = gridPos;
 	console.log("Dragging " + widget.WidgetName);
     }
 }
@@ -126,18 +125,25 @@ function onWidgetPanelMouseDown(event, panel){
 function onWidgetPanelMouseUp(event, panel){
     if (panel.isDragging){
 	var mousePos = {x: event.offsetX, y: event.offsetY};
+	var gridPos = getMouseGridPos(panel, mousePos);
 
 	// we don't drop widgets on top of each other
-	if (!getWidgetOnPoint(panel, mousePos)){
+	var widgetUnderMouse = getWidgetOnPoint(panel, gridPos);
+	if (!widgetUnderMouse || !widgetUnderMouse.enabled){
 	    var cellSize = getVisibleCellSize(panel);
-	    var delta = subV2(mousePos, panel.dragStart);
-	    var gridDelta = {x: delta.x / cellSize.x, y: delta.y / cellSize.y};
+	    var gridDelta = subV2(gridPos, panel.dragStart);
 	    var widget = panel.draggedWidget;
-	    widget.WidgetPosition.X = Math.round(widget.WidgetPosition.X + gridDelta.x);
-	    widget.WidgetPosition.Y = Math.round(widget.WidgetPosition.Y + gridDelta.y);
-	    drawWidgetPanel(panel);
-
-	    sendWidgetUpdate(widget);
+	    var newX = Math.round(widget.WidgetPosition.X + gridDelta.x);
+	    var newY = Math.round(widget.WidgetPosition.Y + gridDelta.y);
+	    if (newX >= 0 &&
+		newX + widget.WidgetSize.X <= canvasGridSize.x &&
+		newY >= 0 &&
+	        newY + widget.WidgetSize.Y <= canvasGridSize.y){
+		widget.WidgetPosition.X = newX;
+		widget.WidgetPosition.Y = newY;
+		drawWidgetPanel(panel);
+		sendWidgetUpdate(widget);
+	    }
 	}
 	panel.isDragging = false;
     }
@@ -173,6 +179,9 @@ function drawWidgetPanel(panel){
     
     for (var i = 0; i < panel.widgets.length; i++){
         var widget = panel.widgets[i]
+	if (!widget.enabled){
+	    continue;
+	}
 	var widgetName = widget["WidgetName"];
 	var widgetStyle = widgetStyles[widgetName];
         ctx.fillStyle = widgetStyle.color;
@@ -206,13 +215,14 @@ function registerWidgetToInputs(panel, widget, wInput, hInput){
     }, false);
 }
 
-function switchControlPane(enabled, widgetName){
+function switchControlPane(enabled, widgetName, widgetMap){
     if (enabled){
 	document.getElementById(widgetName + "LoginButtonForm").style.display = "none";
     }
     else {
 	document.getElementById(widgetName + "SizeForm").style.display = "none";
     }
+    widgetMap[widgetName].enabled = enabled;
 }
 
 function initWidgetPanel(widgetSizesRequest){
@@ -249,9 +259,9 @@ function initWidgetPanel(widgetSizesRequest){
     registerWidgetToInputs(panel, widgetsMap["Twitter"], twitterW, twitterH);
     registerWidgetToInputs(panel, widgetsMap["Gmail"], gmailW, gmailH);
     
-    switchControlPane(respJson["Twitter"].logged_in, "Twitter");
-    switchControlPane(respJson["Google"].logged_in, "Gmail");
-    switchControlPane(respJson["Google"].logged_in, "GoogleTasks");
+    switchControlPane(respJson["Twitter"].logged_in, "Twitter", widgetsMap);
+    switchControlPane(respJson["Google"].logged_in, "Gmail", widgetsMap);
+    switchControlPane(respJson["Google"].logged_in, "GoogleTasks", widgetsMap);
 
     document.getElementById("TwitterLoginButton").onclick = function(event){window.location.replace("/twitter/signin/do");};
     document.getElementById("GmailLoginButton").addEventListener("onclick", function(event){window.location.replace("/google/signin/do");});

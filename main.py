@@ -95,11 +95,14 @@ def requires_login_get(f):
 
 
 def twitter_logged_in(user_id):
-    resp = requests.get("{}/users/{}".format(twitter_url, user_id))
+    url = "{}users/{}".format(twitter_url, user_id)
+    resp = requests.get(url)
+    print(url)
+    print(resp.json())
     if resp.status_code is 200:
         return {
             "logged_in": True,
-            "name": resp.json["screen_name"]
+            "name": resp.json()["screen_name"]
         }
     else:
         return {
@@ -112,7 +115,7 @@ def google_logged_in(user_id):
     if resp.status_code is 200:
         return {
             "logged_in": True,
-            "name": resp.json["name"]
+            "name": resp.json()["name"]
         }
     else:
         return {
