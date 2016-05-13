@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+<script src="/static/js/login.js"></script>
+<div class="row valign-wrapper full-height">
+    <div class="col s6 offset-s3">
+        <div class="card-panel valign">
+            <h1>Login</h1>
+            <form>
+                <div class="group">
+                    {{ form.username }}
+                    <span class="highlight"></span><span class="bar"></span>
+                    {{ form.username.label }}
+                </div>
+                <div class="group">
+                    {{ form.password }}
+                    <span class="highlight"></span><span class="bar"></span>
+                    {{ form.password.label }}
+                </div>
+                <button id="login_button" type="button" class="button buttonBlue">Login
+                    <div class="ripples buttonRipples"><span class="ripplesCircle"></span></div>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
