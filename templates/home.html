@@ -42,10 +42,12 @@
 <div id="TwitterPanel">
   Twitter Panel
 </div>
-<div id="WidgetsPanel" class="row">
-  <canvas class="col s6" id="WidgetCanvas" width="200" height="200"></canvas>
-  {{ widget_panel_form("Google Tasks", "GoogleTasks") }}
-  {{ widget_panel_form("Twitter", "Twitter") }}
-  {{ widget_panel_form("Gmail", "Gmail") }}
+<div id="WidgetsPanelContainer" class="row">
+  <div id="WidgetsPanel" class="col s6">
+    <canvas id="WidgetCanvas"></canvas>
+    {{ widget_panel_form("Google Tasks", "GoogleTasks") }}
+    {{ widget_panel_form("Twitter", "Twitter") }}
+    {{ widget_panel_form("Gmail", "Gmail") }}
+  </div>
 </div>
 {% endblock %}

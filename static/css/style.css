@@ -1,6 +1,11 @@
 html {
-	height: 100%;
+    height: 100%;
 }
 .full-height {
-	height: 100%;
+    height: 100%;
+}
+#WidgetCanvas {
+    border: solid black 1px;
+    padding: 0 0 0 0 !important;
+    width: 100%;
 }

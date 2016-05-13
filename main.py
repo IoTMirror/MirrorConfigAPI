@@ -124,7 +124,7 @@ def config_to_dicts(config):
         })
     if config.tasks_w > 0:
         widgets.append({
-            "WidgetName": "Tasks",
+            "WidgetName": "GoogleTasks",
             "WidgetType": "Small",
             "WidgetPosition": {
                 "X": config.tasks_x,
@@ -150,6 +150,7 @@ def get_widget_config(user_id):
 @requires_login
 def set_widget_config(user_id):
     json = request.json
+    print(json)
     config = UserConfig.query.get(user_id)
     widget_type = json["widget"]
     if widget_type == "Twitter":
@@ -168,7 +169,6 @@ def set_widget_config(user_id):
             config.twitter_y = json["y"]
             config.twitter_w = json["width"]
             config.twitter_h = json["height"]
-            return jsonify({"status": "Success"}), 200
     elif widget_type == "Gmail":
         if "delete" in json and json["delete"] == "True":
             config.gmail_x = 0
@@ -185,7 +185,6 @@ def set_widget_config(user_id):
             config.gmail_y = json["y"]
             config.gmail_w = json["width"]
             config.gmail_h = json["height"]
-            return jsonify({"status": "Success"}), 200
     elif widget_type == "GoogleTasks":
         if "delete" in json and json["delete"] == "True":
             config.tasks_x = 0
@@ -202,10 +201,10 @@ def set_widget_config(user_id):
             config.tasks_y = json["y"]
             config.tasks_w = json["width"]
             config.tasks_h = json["height"]
-            return jsonify({"status": "Success"}), 200
 
     db.session.add(config)
     db.session.commit()
+    return jsonify({"status": "Success"}), 200
 
 
 @app.route("/", methods=['GET'])
