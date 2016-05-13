@@ -225,6 +225,13 @@ function switchControlPane(enabled, widgetName, widgetMap){
     widgetMap[widgetName].enabled = enabled;
 }
 
+function bindRedirectButton(buttonName, url){
+    document.getElementById(buttonName).onclick = function(event){
+	event.preventDefault();
+	window.location.replace(url)
+    };
+}
+
 function initWidgetPanel(widgetSizesRequest){
     if (widgetSizesRequest.readyState != XMLHttpRequest.DONE ||
         widgetSizesRequest.status != 200){
@@ -263,9 +270,13 @@ function initWidgetPanel(widgetSizesRequest){
     switchControlPane(respJson["Google"].logged_in, "Gmail", widgetsMap);
     switchControlPane(respJson["Google"].logged_in, "GoogleTasks", widgetsMap);
 
-    document.getElementById("TwitterLoginButton").onclick = function(event){window.location.replace("/twitter/signin/do");};
-    document.getElementById("GmailLoginButton").addEventListener("onclick", function(event){window.location.replace("/google/signin/do");});
-    document.getElementById("GoogleTasksLoginButton").addEventListener("onclick", function(event){window.location.replace("/google/signin/do");});
+    bindRedirectButton("TwitterDeleteButton", "/twitter/signout/do");
+    bindRedirectButton("GmailDeleteButton", "/google/signout/do");
+    bindRedirectButton("GoogleTasksDeleteButton", "/google/signout/do");
+
+    bindRedirectButton("TwitterLoginButton", "/twitter/signin/do");
+    bindRedirectButton("GmailLoginButton", "/google/signin/do");
+    bindRedirectButton("GoogleTasksLoginButton", "/google/signin/do");
 
     document.getElementById("WidgetsPanelContainer").style.display = "block";
     drawWidgetPanel(panel);

@@ -98,8 +98,9 @@ def twitter_logged_in(user_id):
     url = "{}users/{}".format(twitter_url, user_id)
     resp = requests.get(url)
     print(url)
-    print(resp.json())
+    print(resp.status_code)
     if resp.status_code is 200:
+        print(resp.text)
         return {
             "logged_in": True,
             "name": resp.json()["screen_name"]
