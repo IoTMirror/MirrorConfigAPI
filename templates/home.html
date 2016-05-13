@@ -1,53 +1,46 @@
 {% extends "layout.html" %}
 {% macro widget_panel_form(full_name, name) %}
-<form>
-    <div>{{ full_name }}</div>
+<span>
+  {{ full_name }}
+</span>
+<div>
+  <form id="{{name}}SizeForm">
     <div class="row group">
-        <div class="input-field col s6">
-            <input id="{{name}}X" placeholder="X">
-        </div>
-        <div class="input-field col s6">
-            <input id="{{name}}Y" placeholder="Y">
-        </div>
+      <div class="input-field col s6">
+	<input id="{{name}}W" placeholder="Width">
+      </div>
+      <div class="input-field col s6">
+	<input id="{{name}}H" placeholder="Height">
+      </div>
     </div>
-    <div class="row group">
-        <div class="input-field col s6">
-            <input id="{{name}}W" placeholder="Width">
-        </div>
-        <div class="input-field col s6">
-            <input id="{{name}}H" placeholder="Height">
-        </div>
-    </div>
-    <div class="row">
-        <button id="{{name}}ConfirmButton" class="button buttonBlue">Apply</button>
-    </div>
-</form>
+  </form>
+</div>
 {% endmacro %}
 {% block body %}
 <script src="/static/js/home.js"></script>
 <nav>
-  <ul class="hide-on-med-and-down">
-    <li><a id="GoogleTasksNavButton" href="/google/signin/do">Google Task List</a></li>
-    <li><a id="GmailNavButton" href="/google/signin/do">Gmail</a></li>
-    <li><a id="TwitterNavButton" href="/twitter/signin/do">Twitter</a></li>
-    <li><a id="WidgetsNavButton" href="#!">Widgets</a></li>
-  </ul>
 </nav>
-<div id="GoogleTasksPanel">
-  Tasks Panel
-</div>
-<div id="GmailPanel">
-  Gmail Panel
-</div>
-<div id="TwitterPanel">
-  Twitter Panel
-</div>
 <div id="WidgetsPanelContainer" class="row">
-  <div id="WidgetsPanel" class="col s6">
-    <canvas id="WidgetCanvas"></canvas>
-    {{ widget_panel_form("Google Tasks", "GoogleTasks") }}
-    {{ widget_panel_form("Twitter", "Twitter") }}
-    {{ widget_panel_form("Gmail", "Gmail") }}
+  <div id="WidgetsPanelCard" class="card">
+    <div id="WidgetsPanel" class="col s6">
+      <canvas id="WidgetCanvas"></canvas>
+    </div>
+    <div id="WidgetPanelControls" class="col s6">
+      <ul class="collection">
+	<li class="collection-item avatar">
+	  <img class="circle" src="/static/img/TasksLogo.png">
+	  {{ widget_panel_form("Google Tasks", "GoogleTasks") }}
+	</li>
+	<li class="collection-item avatar">
+	  <img class="circle" src="/static/img/TwitterLogo.png">
+	  {{ widget_panel_form("Twitter", "Twitter") }}
+	</li>
+	<li class="collection-item avatar">
+	  <img class="circle" src="/static/img/GmailLogo.png">
+	  {{ widget_panel_form("Gmail", "Gmail") }}
+	</li>
+      </ul>
+    </div>
   </div>
 </div>
 {% endblock %}

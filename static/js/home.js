@@ -1,12 +1,3 @@
-function hideAll(panels){
-    for (var i = 0; i < panels.length; i++) {
-        panels[i].style.display = "none";
-    }
-}
-
-function resizeWidgetCanvas(canvas){
-    canvas.height = canvas.width;
-}
 
 var widgetStyles = {
     "GoogleTasks": {
@@ -62,8 +53,8 @@ function getVisibleCellSize(panel){
 function getWidgetRect(widget, cellSize){
     var x = widget["WidgetPosition"]["X"];
     var y = widget["WidgetPosition"]["Y"];
-    var h = widget["WidgetSize"]["X"];
-    var w = widget["WidgetSize"]["Y"];
+    var w = widget["WidgetSize"]["X"];
+    var h = widget["WidgetSize"]["Y"];
 
     return {
 	x: x*cellSize.x,
@@ -96,26 +87,19 @@ function getWidgetOnPoint(panel, point){
     return null;
 }
 
-function createConfirmCallback(widgetName, xInput, yInput, wInput, hInput) {
-    return function() {
-	var x = xInput.value;
-	var y = yInput.value;
-	var w = wInput.value;
-	var h = hInput.value;
-
-	var request = new XMLHttpRequest();
-	request.open('POST', '/widgets');
-	var content = {
-	    "widget": widgetName,
-	    "token": localStorage.getItem("token"),
-	    "x": x,
-	    "y": y,
-	    "width": w,
-	    "height": h
-	};
-	request.setRequestHeader('Content-Type', 'application/json');
-	request.send(JSON.stringify(content));
-    }
+function sendWidgetUpdate(widget){
+    var request = new XMLHttpRequest();
+    request.open('POST', '/widgets');
+    var content = {
+	"widget": widget.WidgetName,
+	"token": localStorage.getItem("token"),
+	"x": widget.WidgetPosition.X,
+	"y": widget.WidgetPosition.Y,
+	"width": widget.WidgetSize.X,
+	"height": widget.WidgetSize.Y
+    };
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.send(JSON.stringify(content));
 }
 
 function onWidgetPanelMouseDown(event, panel){
@@ -143,19 +127,7 @@ function onWidgetPanelMouseUp(event, panel){
 	    widget.WidgetPosition.Y = Math.round(widget.WidgetPosition.Y + gridDelta.y);
 	    drawWidgetPanel(panel);
 
-	    var request = new XMLHttpRequest();
-	    request.open('POST', '/widgets');
-	    var content = {
-		"widget": widget.WidgetName,
-		"token": localStorage.getItem("token"),
-		"x": widget.WidgetPosition.X,
-		"y": widget.WidgetPosition.Y,
-		"width": widget.WidgetSize.X,
-		"height": widget.WidgetSize.Y
-	    };
-	    request.setRequestHeader('Content-Type', 'application/json');
-	    request.send(JSON.stringify(content));
-
+	    sendWidgetUpdate(widget);
 	}
 	panel.isDragging = false;
     }
@@ -168,8 +140,10 @@ function onWidgetPanelMouseMove(event, panel){
 }
 
 function drawWidgetPanel(panel){
+    var canvas = panel.canvas;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.width;
     var ctx = panel.ctx;
-    resizeWidgetCanvas(panel.canvas);
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, panel.canvas.width, panel.canvas.height);
     var cellSize = getCellSize(panel);
@@ -197,6 +171,31 @@ function drawWidgetPanel(panel){
     }
 }
 
+function registerWidgetToInputs(panel, widget, wInput, hInput){
+    wInput.value = widget.WidgetSize.X;
+    hInput.value = widget.WidgetSize.Y;
+
+    wInput.addEventListener("input", function(event){
+	var val = Number(wInput.value);
+	if (!isNaN(val) && val > 0 && val < 8)
+	{
+	    widget.WidgetSize.X = val;
+	    drawWidgetPanel(panel);
+	    sendWidgetUpdate(widget);
+	}
+    }, false);
+
+    hInput.addEventListener("input", function(event){
+	var val = Number(hInput.value);
+	if (!isNaN(val) && val > 0 && val < 8)
+	{
+	    widget.WidgetSize.Y = val;
+	    drawWidgetPanel(panel);
+	    sendWidgetUpdate(widget);
+	}
+    }, false);
+}
+
 function initWidgetPanel(widgetSizesRequest){
     if (widgetSizesRequest.readyState != XMLHttpRequest.DONE ||
         widgetSizesRequest.status != 200){
@@ -206,69 +205,33 @@ function initWidgetPanel(widgetSizesRequest){
     var widgets = JSON.parse(widgetSizesRequest.response)["Widgets"];
     console.log("Widget sizes");
     console.log(widgets);
-    var widgetsMap = {};
-    for (var i = 0; i < widgets.length; i++){
-        var elem = widgets[i];
-        widgetsMap[elem["WidgetName"]] = elem;
-    }
 
     var widgetCanvas = document.getElementById("WidgetCanvas");
     var panel = new WidgetPanel(widgetCanvas, widgets);
     widgetCanvas.addEventListener("mousedown", function(event){onWidgetPanelMouseDown(event, panel);}, false);
     widgetCanvas.addEventListener("mouseup", function(event){onWidgetPanelMouseUp(event, panel);}, false);
     widgetCanvas.addEventListener("mousemove", function(event){onWidgetPanelMouseMove(event, panel);}, false);
+
+    var tasksW = document.getElementById("GoogleTasksW");
+    var tasksH = document.getElementById("GoogleTasksH");
+    var twitterW = document.getElementById("TwitterW");
+    var twitterH = document.getElementById("TwitterH");
+    var gmailW = document.getElementById("GmailW");
+    var gmailH = document.getElementById("GmailH");
+
+    var widgetsMap = {};
+    for (var i = 0; i < widgets.length; i++){
+        var elem = widgets[i];
+        widgetsMap[elem["WidgetName"]] = elem;
+    }
+    registerWidgetToInputs(panel, widgetsMap["GoogleTasks"], tasksW, tasksH);
+    registerWidgetToInputs(panel, widgetsMap["Twitter"], twitterW, twitterH);
+    registerWidgetToInputs(panel, widgetsMap["Gmail"], gmailW, gmailH);
+    
     drawWidgetPanel(panel);
-
-    var widgetNames = ["GoogleTasks", "Gmail", "Twitter"];
-    for (var i = 0; i < widgetNames.length; i++){
-        var widgetName = widgetNames[i];
-	console.log("setting callback for " + widgetName);
-        var xInput = document.getElementById(widgetName + "X");
-        var yInput = document.getElementById(widgetName + "Y");
-        var wInput = document.getElementById(widgetName + "W");
-        var hInput = document.getElementById(widgetName + "H");
-
-        if (widgetName in widgetsMap){
-            var widget = widgetsMap[widgetName];
-            xInput.value = widget["WidgetPosition"]["X"];
-            yInput.value = widget["WidgetPosition"]["Y"];
-            wInput.value = widget["WidgetSize"]["X"];
-            hInput.value = widget["WidgetSize"]["Y"];
-        }
-
-        var confirmButton = document.getElementById(widgetName + "ConfirmButton");
-        confirmButton.onclick = createConfirmCallback(widgetName, xInput, yInput, wInput, hInput);}
 }
 
 window.onload = function() {
-    var googleTaskPanel = document.getElementById("GoogleTasksPanel");
-    var gmailPanel = document.getElementById("GmailPanel");
-    var twitterPanel = document.getElementById("TwitterPanel");
-    var widgetPanel = document.getElementById("WidgetsPanel");
-
-    var panels = [googleTaskPanel, gmailPanel, twitterPanel, widgetPanel];
-
-    var googleTaskButton = document.getElementById("GoogleTasksNavButton");
-    googleTaskButton.onclick = function() {
-        hideAll(panels);
-        googleTaskPanel.style.display = "block";
-    };
-    document.getElementById("GmailNavButton").onclick = function() {
-        hideAll(panels);
-        gmailPanel.style.display = "block";
-    }
-    document.getElementById("TwitterNavButton").onclick = function() {
-        hideAll(panels);
-        twitterPanel.style.display = "block";
-    }
-    document.getElementById("WidgetsNavButton").onclick = function() {
-        hideAll(panels);
-        widgetPanel.style.display = "block";
-    }
-    hideAll(panels);
-    googleTaskPanel.style.display = "block";
-
-
     var widgetSizesRequest = new XMLHttpRequest();
     widgetSizesRequest.open('GET', '/widgets');
     widgetSizesRequest.setRequestHeader('Content-Type', 'application/json');

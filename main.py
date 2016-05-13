@@ -291,6 +291,21 @@ def twitter_signin(user_id):
     return redirect("{}signin/{}".format(twitter_url, user_id))
 
 
+@app.route("/twitter/logged_in", methods=["GET"])
+@requires_login_get
+def twitter_logged_in(user_id):
+    resp = requests.get("{}/users/{}".format(twitter_url, user_id))
+    if resp.status_code is 200:
+        return jsonify({
+            "logged_in": True,
+            "name": resp.json["screen_name"]
+        })
+    else:
+        return jsonify({
+            "logged_in": False
+        })
+
+
 @app.route("/twitter/users/<token>")
 @requires_login_get
 def twitter_user(user_id):
@@ -301,6 +316,22 @@ def twitter_user(user_id):
 @requires_login_get
 def google_signin(user_id):
     return redirect("{}signin/{}".format(google_url, user_id))
+
+
+@app.route("/twitter/logged_in", methods=["GET"])
+@requires_login_get
+def google_logged_in(user_id):
+    resp = requests.get("{}/users/{}".format(google_url, user_id))
+    if resp.status_code is 200:
+        return jsonify({
+            "logged_in": True,
+            "name": resp.json["name"]
+        })
+    else:
+        return jsonify({
+            "logged_in": False
+        })
+
 
 
 @app.route("/google/signout/<token>")
