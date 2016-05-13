@@ -94,6 +94,32 @@ def requires_login_get(f):
     return inner
 
 
+def twitter_logged_in(user_id):
+    resp = requests.get("{}/users/{}".format(twitter_url, user_id))
+    if resp.status_code is 200:
+        return {
+            "logged_in": True,
+            "name": resp.json["screen_name"]
+        }
+    else:
+        return {
+            "logged_in": False
+        }
+
+
+def google_logged_in(user_id):
+    resp = requests.get("{}/users/{}".format(google_url, user_id))
+    if resp.status_code is 200:
+        return {
+            "logged_in": True,
+            "name": resp.json["name"]
+        }
+    else:
+        return {
+            "logged_in": False
+        }
+
+
 def config_to_dicts(config):
     widgets = []
     if config.twitter_w > 0:
@@ -143,7 +169,12 @@ def config_to_dicts(config):
 @requires_login_get
 def get_widget_config(user_id):
     config = UserConfig.query.get(user_id)
-    return jsonify({"Widgets": config_to_dicts(config)})
+    return jsonify(
+            {
+                "Widgets": config_to_dicts(config),
+                "Twitter": twitter_logged_in(user_id),
+                "Google": google_logged_in(user_id)
+            })
 
 
 @app.route("/widgets", methods=['POST'])
@@ -291,21 +322,6 @@ def twitter_signin(user_id):
     return redirect("{}signin/{}".format(twitter_url, user_id))
 
 
-@app.route("/twitter/logged_in", methods=["GET"])
-@requires_login_get
-def twitter_logged_in(user_id):
-    resp = requests.get("{}/users/{}".format(twitter_url, user_id))
-    if resp.status_code is 200:
-        return jsonify({
-            "logged_in": True,
-            "name": resp.json["screen_name"]
-        })
-    else:
-        return jsonify({
-            "logged_in": False
-        })
-
-
 @app.route("/twitter/users/<token>")
 @requires_login_get
 def twitter_user(user_id):
@@ -316,22 +332,6 @@ def twitter_user(user_id):
 @requires_login_get
 def google_signin(user_id):
     return redirect("{}signin/{}".format(google_url, user_id))
-
-
-@app.route("/twitter/logged_in", methods=["GET"])
-@requires_login_get
-def google_logged_in(user_id):
-    resp = requests.get("{}/users/{}".format(google_url, user_id))
-    if resp.status_code is 200:
-        return jsonify({
-            "logged_in": True,
-            "name": resp.json["name"]
-        })
-    else:
-        return jsonify({
-            "logged_in": False
-        })
-
 
 
 @app.route("/google/signout/<token>")

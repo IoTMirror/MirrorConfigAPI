@@ -31,6 +31,16 @@ function WidgetPanel(canvas, widgets){
     this.isDragging = false;
     this.draggedWidget = null;
     this.dragStart = null;
+    for (var i=0; i< widgets.length; i++){
+	var widget = widgets[i];
+	if(widget.WidgetName == "Twitter"){
+	    this.twitterWidget = widget;
+	} else if (widget.WidgetName == "Gmail"){
+	    this.gmailWidget = widget;
+	} else if (widget.WidgetName == "GoogleTasks") {
+	    this.tasksWidget = widget;
+	}
+    }
 }
 
 function getCellSize(panel){
@@ -196,13 +206,24 @@ function registerWidgetToInputs(panel, widget, wInput, hInput){
     }, false);
 }
 
+function switchControlPane(enabled, widgetName){
+    if (enabled){
+	document.getElementById(widgetName + "LoginButtonForm").style.display = "none";
+    }
+    else {
+	document.getElementById(widgetName + "SizeForm").style.display = "none";
+    }
+}
+
 function initWidgetPanel(widgetSizesRequest){
     if (widgetSizesRequest.readyState != XMLHttpRequest.DONE ||
         widgetSizesRequest.status != 200){
         return;
     }
 
-    var widgets = JSON.parse(widgetSizesRequest.response)["Widgets"];
+    var respJson = JSON.parse(widgetSizesRequest.response)
+    console.log(respJson);
+    var widgets = respJson["Widgets"];
     console.log("Widget sizes");
     console.log(widgets);
 
@@ -228,6 +249,15 @@ function initWidgetPanel(widgetSizesRequest){
     registerWidgetToInputs(panel, widgetsMap["Twitter"], twitterW, twitterH);
     registerWidgetToInputs(panel, widgetsMap["Gmail"], gmailW, gmailH);
     
+    switchControlPane(respJson["Twitter"].logged_in, "Twitter");
+    switchControlPane(respJson["Google"].logged_in, "Gmail");
+    switchControlPane(respJson["Google"].logged_in, "GoogleTasks");
+
+    document.getElementById("TwitterLoginButton").onclick = function(event){window.location.replace("/twitter/signin/do");};
+    document.getElementById("GmailLoginButton").addEventListener("onclick", function(event){window.location.replace("/google/signin/do");});
+    document.getElementById("GoogleTasksLoginButton").addEventListener("onclick", function(event){window.location.replace("/google/signin/do");});
+
+    document.getElementById("WidgetsPanelContainer").style.display = "block";
     drawWidgetPanel(panel);
 }
 

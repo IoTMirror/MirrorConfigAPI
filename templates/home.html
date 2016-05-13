@@ -3,24 +3,27 @@
 <span>
   {{ full_name }}
 </span>
-<div>
-  <form id="{{name}}SizeForm">
-    <div class="row group">
-      <div class="input-field col s6">
-	<input id="{{name}}W" placeholder="Width">
-      </div>
-      <div class="input-field col s6">
-	<input id="{{name}}H" placeholder="Height">
-      </div>
+<form id="{{name}}SizeForm">
+  <div class="row group">
+    <div class="input-field col s6">
+      <input id="{{name}}W" placeholder="Width">
     </div>
-  </form>
+    <div class="input-field col s6">
+      <input id="{{name}}H" placeholder="Height">
+    </div>
+  </div>
+</form>
+<div id="{{name}}LoginButtonForm">
+  <button id="{{name}}LoginButton" class="btn waves-effect waves-light">
+    Log in
+  </button>
 </div>
 {% endmacro %}
 {% block body %}
 <script src="/static/js/home.js"></script>
 <nav>
 </nav>
-<div id="WidgetsPanelContainer" class="row">
+<div id="WidgetsPanelContainer" class="row" style="display: none">
   <div id="WidgetsPanelCard" class="card">
     <div id="WidgetsPanel" class="col s6">
       <canvas id="WidgetCanvas"></canvas>
