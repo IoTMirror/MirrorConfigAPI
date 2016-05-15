@@ -112,7 +112,7 @@ def twitter_logged_in(user_id):
 
 
 def google_logged_in(user_id):
-    resp = requests.get("{}/users/{}".format(google_url, user_id))
+    resp = requests.get("{}users/{}".format(google_url, user_id))
     if resp.status_code is 200:
         return {
             "logged_in": True,
