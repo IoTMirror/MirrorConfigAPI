@@ -19,6 +19,7 @@ app.config['SECURITY_PASSWORD_HASH'] = 'pbkdf2_sha512'
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQLALCHEMY_DATABASE_URI']
 db = SQLAlchemy(app)
+request_headers = {"Authorization": os.environ["AUTH"]}
 
 twitter_url = os.environ["TWITTER_URL"]
 google_url = os.environ["GOOGLE_URL"]
@@ -96,7 +97,7 @@ def requires_login_get(f):
 
 def twitter_logged_in(user_id):
     url = "{}users/{}".format(twitter_url, user_id)
-    resp = requests.get(url)
+    resp = requests.get(url, headers=request_headers)
     print(url)
     print(resp.status_code)
     if resp.status_code is 200:
@@ -112,7 +113,7 @@ def twitter_logged_in(user_id):
 
 
 def google_logged_in(user_id):
-    resp = requests.get("{}users/{}".format(google_url, user_id))
+    resp = requests.get("{}users/{}".format(google_url, user_id), headers=request_headers)
     if resp.status_code is 200:
         return {
             "logged_in": True,
@@ -341,14 +342,14 @@ def google_signin(user_id):
 @app.route("/google/signout/<token>")
 @requires_login_get
 def google_signout(user_id):
-    resp = requests.delete("{}signout/{}".format(google_url, user_id))
+    resp = requests.delete("{}signout/{}".format(google_url, user_id), headers=request_headers)
     return '', resp.status_code
 
 
 @app.route("/twitter/signout/<token>")
 @requires_login_get
 def twitter_signout(user_id):
-    resp = requests.delete("{}signout/{}".format(twitter_url, user_id))
+    resp = requests.delete("{}signout/{}".format(twitter_url, user_id), headers=request_headers)
     return '', resp.status_code
 
 
