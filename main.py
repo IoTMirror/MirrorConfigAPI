@@ -23,6 +23,7 @@ request_headers = {"Authorization": os.environ["AUTH"]}
 
 twitter_url = os.environ["TWITTER_URL"]
 google_url = os.environ["GOOGLE_URL"]
+ad_keyword_filter_url = os.environ["AD_URL"]
 
 
 class User(db.Model):
@@ -357,6 +358,14 @@ def twitter_signout(user_id):
 @requires_login_get
 def google_user(user_id):
     return redirect("{}users/{}".format(google_url, user_id))
+
+
+@app.route("/ad_keywords", methods=['GET'])
+@requires_login_get
+def keywords(user_id):
+    url="{0}keywords/{1}".format(ad_keyword_filter_url, user_id)
+    resp = requests.get(url)
+    return resp.content
 
 
 if __name__ == "__main__":
