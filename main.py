@@ -360,7 +360,7 @@ def google_user(user_id):
     return redirect("{}users/{}".format(google_url, user_id))
 
 
-@app.route("/ad_keywords", methods=['GET'])
+@app.route("/ad_keywords/<token>", methods=['GET'])
 @requires_login_get
 def keywords(user_id):
     url="{0}keywords/{1}".format(ad_keyword_filter_url, user_id)
