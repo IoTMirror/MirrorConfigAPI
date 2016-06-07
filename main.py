@@ -24,6 +24,7 @@ request_headers = {"Authorization": os.environ["AUTH"]}
 twitter_url = os.environ["TWITTER_URL"]
 google_url = os.environ["GOOGLE_URL"]
 ad_keyword_filter_url = os.environ["AD_URL"]
+recognition_service_url = os.environ["RECOGNITION_SERVICE_URL"]
 
 
 class User(db.Model):
@@ -367,6 +368,51 @@ def keywords(user_id):
     resp = requests.get(url)
     return resp.content
 
+@app.route("/mirrors/<token>", methods=['GET'])
+@requires_login_get
+def mirrors(user_id):
+  url="{}private/Users/{}/mirrors".format(recognition_service_url, user_id)
+  resp = requests.get(url, headers=request_headers)
+  return resp.content
+
+@app.route("/mirrors", methods=['POST'])
+@requires_login
+def mirrorAdd(user_id):
+  body = request.get_json()
+  
+  if 'DeviceId' not in body:
+    return jsonify({'error': 'DeviceId missing'}), 401
+  
+  mirror_id = body["DeviceId"]
+  url="{}private/Users/{}/mirrors/{}".format(recognition_service_url, user_id, mirror_id)
+  requests.put(url, headers=request_headers)
+  return jsonify({"Result": "Success"})
+
+@app.route("/mirrors", methods=['DELETE'])
+@requires_login
+def mirrorDelete(user_id):
+  body = request.get_json()
+  
+  if 'DeviceId' not in body:
+    return jsonify({'error': 'DeviceId missing'}), 401
+  
+  mirror_id = body["DeviceId"]
+  url="{}private/Users/{}/mirrors/{}".format(recognition_service_url, user_id, mirror_id)
+  requests.delete(url, headers=request_headers)
+  return jsonify({"Result": "Success"})
+
+@app.route("/teaching", methods=['POST'])
+@requires_login
+def teacher(user_id):
+  body = request.get_json()
+  
+  if 'DeviceId' not in body:
+    return jsonify({'error': 'DeviceId missing'}), 401
+  
+  mirror_id = body["DeviceId"]
+  url="{}private/TeachingSessions/mirrors/{}/users/{}".format(recognition_service_url, mirror_id, user_id)
+  requests.post(url, headers=request_headers)
+  return jsonify({"Result": "Success"})
 
 if __name__ == "__main__":
     app.run()
