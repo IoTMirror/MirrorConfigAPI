@@ -5,6 +5,7 @@ import os
 from functools import wraps
 
 import requests
+import json
 from flask import Flask, request, jsonify, render_template, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import Form
@@ -100,10 +101,7 @@ def requires_login_get(f):
 def twitter_logged_in(user_id):
     url = "{}users/{}".format(twitter_url, user_id)
     resp = requests.get(url, headers=request_headers)
-    print(url)
-    print(resp.status_code)
     if resp.status_code is 200:
-        print(resp.text)
         return {
             "logged_in": True,
             "name": resp.json()["screen_name"]
@@ -188,7 +186,6 @@ def get_widget_config(user_id):
 @requires_login
 def set_widget_config(user_id):
     json = request.json
-    print(json)
     config = UserConfig.query.get(user_id)
     widget_type = json["widget"]
     if widget_type == "Twitter":
@@ -248,7 +245,7 @@ def set_widget_config(user_id):
 @app.route("/", methods=['GET'])
 @requires_login
 def home(user_id):
-    return render_template("home.html")
+    return render_template("home.html", mirror_id_list=get_mirror_ids(user_id))
 
 
 @app.route("/user", methods=['POST'])
@@ -368,12 +365,24 @@ def keywords(user_id):
     resp = requests.get(url)
     return resp.content
 
+
+def send_mirror_request(user_id):
+  url="{}private/Users/{}/mirrors".format(recognition_service_url, user_id)
+  resp = requests.get(url, headers=request_headers)
+  return resp.text
+    
+
+
+def get_mirror_ids(user_id):
+    content = send_mirror_request(user_id)
+    js = json.loads(content)
+    return js
+    
+
 @app.route("/mirrors/<token>", methods=['GET'])
 @requires_login_get
 def mirrors(user_id):
-  url="{}private/Users/{}/mirrors".format(recognition_service_url, user_id)
-  resp = requests.get(url, headers=request_headers)
-  return resp.content
+    return send_mirror_request(user_id)
 
 @app.route("/mirrors", methods=['POST'])
 @requires_login

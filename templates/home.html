@@ -20,31 +20,67 @@
   </button>
 </div>
 {% endmacro %}
-{% block body %}
-<script src="/static/js/home.js"></script>
-<nav>
-</nav>
-<div id="WidgetsPanelContainer" class="row" style="display: none">
-  <div id="WidgetsPanelCard" class="card">
-    <div id="WidgetsPanel" class="col s6">
-      <canvas id="WidgetCanvas"></canvas>
-    </div>
-    <div id="WidgetPanelControls" class="col s6">
-      <ul class="collection">
-	<li class="collection-item avatar">
-	  <img class="circle" src="/static/img/TasksLogo.png">
-	  {{ widget_panel_form("Google Tasks", "GoogleTasks") }}
-	</li>
-	<li class="collection-item avatar">
-	  <img class="circle" src="/static/img/TwitterLogo.png">
-	  {{ widget_panel_form("Twitter", "Twitter") }}
-	</li>
-	<li class="collection-item avatar">
-	  <img class="circle" src="/static/img/GmailLogo.png">
-	  {{ widget_panel_form("Gmail", "Gmail") }}
-	</li>
-      </ul>
-    </div>
+
+{% macro mirror_list_element(mirror_id) %}
+<li class="collection-item">
+    <button id="StartLearningButton{{ mirror_id }}" class="learn-button btn waves-effect waves-light" data-mirrorid="{{ mirror_id }}">
+      Start learning
+    </button>
+    {{ mirror_id }}
+</li>
+{% endmacro %}
+
+{% macro mirror_list(mirror_id_list) %}
+<div class="card">
+  <div class="card-content">
+    <ul id="MirrorList" class="collection">
+        {% for id in mirror_id_list %}
+          {{ mirror_list_element(id) }}
+        {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card-action">
+    <form>
+      <input id="NewMirrorID" placeholder="Serial Number">
+      <div class="row group">
+        <button id="AddMirrorButton" class = "btn waves-effect waves-light">
+          Add new
+        </button>
+      </div>
+    </form>
   </div>
 </div>
+{% endmacro %}
+
+{% block body %}
+  <script src="/static/js/home.js"></script>
+  <nav>
+  </nav>
+  <div id="WidgetsPanelContainer" class="row" style="display: none">
+    <div id="WidgetsPanelCard" class="card">
+      <div id="WidgetsPanel" class="col s6">
+        <canvas id="WidgetCanvas"></canvas>
+      </div>
+      <div id="WidgetPanelControls" class="col s6">
+        <ul class="collection">
+         <li class="collection-item avatar">
+           <img class="circle" src="/static/img/TasksLogo.png">
+           {{ widget_panel_form("Google Tasks", "GoogleTasks") }}
+         </li>
+         <li class="collection-item avatar">
+           <img class="circle" src="/static/img/TwitterLogo.png">
+           {{ widget_panel_form("Twitter", "Twitter") }}
+         </li>
+         <li class="collection-item avatar">
+           <img class="circle" src="/static/img/GmailLogo.png">
+           {{ widget_panel_form("Gmail", "Gmail") }}
+         </li>
+       </ul>
+     </div>
+   </div>
+  </div>
+  <div id="MirrorListContainer" class="row" style="display: none">
+    {{ mirror_list(mirror_id_list) }}
+  </div>
 {% endblock %}

@@ -24,7 +24,7 @@ function subV2(lhs, rhs) {
     return {x: lhs.x - rhs.x, y: lhs.y - rhs.y};
 }
 
-function WidgetPanel(canvas, widgets){
+function WidgetPanel(canvas, widgets) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.widgets = widgets;
@@ -32,82 +32,82 @@ function WidgetPanel(canvas, widgets){
     this.draggedWidget = null;
     this.dragStart = null;
     for (var i=0; i< widgets.length; i++){
-	var widget = widgets[i];
-	if(widget.WidgetName == "Twitter"){
-	    this.twitterWidget = widget;
-	} else if (widget.WidgetName == "Gmail"){
-	    this.gmailWidget = widget;
-	} else if (widget.WidgetName == "GoogleTasks") {
-	    this.tasksWidget = widget;
-	}
-    }
+       var widget = widgets[i];
+       if(widget.WidgetName == "Twitter"){
+           this.twitterWidget = widget;
+       } else if (widget.WidgetName == "Gmail"){
+           this.gmailWidget = widget;
+       } else if (widget.WidgetName == "GoogleTasks") {
+           this.tasksWidget = widget;
+       }
+   }
 }
 
-function getCellSize(panel){
+function getCellSize(panel) {
     var canvas = panel.canvas;
     console.log("canvas size: " + canvas.width + " " + canvas.height);
     return {
-	x: canvas.width/canvasGridSize.x,
-	y: canvas.height/canvasGridSize.y
-    }
+       x: canvas.width/canvasGridSize.x,
+       y: canvas.height/canvasGridSize.y
+   }
 }
 
-function getVisibleCellSize(panel){
+function getVisibleCellSize(panel) {
     var canvas = panel.canvas;
     return {
-	x: canvas.offsetWidth/canvasGridSize.x,
-	y: canvas.offsetHeight/canvasGridSize.y
-    }
+       x: canvas.offsetWidth/canvasGridSize.x,
+       y: canvas.offsetHeight/canvasGridSize.y
+   }
 }
 
-function getWidgetRect(widget, cellSize){
+function getWidgetRect(widget, cellSize) {
     var x = widget["WidgetPosition"]["X"];
     var y = widget["WidgetPosition"]["Y"];
     var w = widget["WidgetSize"]["X"];
     var h = widget["WidgetSize"]["Y"];
 
     return {
-	x: x*cellSize.x,
-	y: y*cellSize.y,
-	w: w*cellSize.x,
-	h: h*cellSize.y
-    };
+       x: x*cellSize.x,
+       y: y*cellSize.y,
+       w: w*cellSize.x,
+       h: h*cellSize.y
+   };
 }
 
-function getMouseGridPos(panel, point){
+function getMouseGridPos(panel, point) {
     var cellSize = getVisibleCellSize(panel);
     return {
-	x: Math.floor(point.x/cellSize.x),
-	y: Math.floor(point.y/cellSize.y)
-    };
+       x: Math.floor(point.x/cellSize.x),
+       y: Math.floor(point.y/cellSize.y)
+   };
 }
 
-function getWidgetOnPoint(panel, gridPos){
-    for (var i = 0; i < panel.widgets.length; i++){
-	var widget = panel.widgets[i];
-	if (widget.WidgetPosition.X <= gridPos.x &&
-	    widget.WidgetPosition.X + widget.WidgetSize.X > (gridPos.x) &&
-	    widget.WidgetPosition.Y <= gridPos.y &&
-	    widget.WidgetPosition.Y + widget.WidgetSize.Y > (gridPos.y)){
-	    return widget;
-	}
-    }
-    return null;
+function getWidgetOnPoint(panel, gridPos) {
+    for (var i = 0; i < panel.widgets.length; i++) {
+       var widget = panel.widgets[i];
+       if (widget.WidgetPosition.X <= gridPos.x &&
+           widget.WidgetPosition.X + widget.WidgetSize.X > (gridPos.x) &&
+           widget.WidgetPosition.Y <= gridPos.y &&
+           widget.WidgetPosition.Y + widget.WidgetSize.Y > (gridPos.y)){
+           return widget;
+   }
+}
+return null;
 }
 
 function sendWidgetUpdate(widget){
     var request = new XMLHttpRequest();
     request.open('POST', '/widgets');
     var content = {
-	"widget": widget.WidgetName,
-	"token": localStorage.getItem("token"),
-	"x": widget.WidgetPosition.X,
-	"y": widget.WidgetPosition.Y,
-	"width": widget.WidgetSize.X,
-	"height": widget.WidgetSize.Y
-    };
-    request.setRequestHeader('Content-Type', 'application/json');
-    request.send(JSON.stringify(content));
+       "widget": widget.WidgetName,
+       "token": localStorage.getItem("token"),
+       "x": widget.WidgetPosition.X,
+       "y": widget.WidgetPosition.Y,
+       "width": widget.WidgetSize.X,
+       "height": widget.WidgetSize.Y
+   };
+   request.setRequestHeader('Content-Type', 'application/json');
+   request.send(JSON.stringify(content));
 }
 
 function onWidgetPanelMouseDown(event, panel){
@@ -115,44 +115,44 @@ function onWidgetPanelMouseDown(event, panel){
     var gridPos = getMouseGridPos(panel, mousePos);
     var widget = getWidgetOnPoint(panel, gridPos);
     if (widget){
-	panel.isDragging = true;
-	panel.draggedWidget = widget;
-	panel.dragStart = gridPos;
-	console.log("Dragging " + widget.WidgetName);
-    }
+       panel.isDragging = true;
+       panel.draggedWidget = widget;
+       panel.dragStart = gridPos;
+       console.log("Dragging " + widget.WidgetName);
+   }
 }
 
 function onWidgetPanelMouseUp(event, panel){
     if (panel.isDragging){
-	var mousePos = {x: event.offsetX, y: event.offsetY};
-	var gridPos = getMouseGridPos(panel, mousePos);
+       var mousePos = {x: event.offsetX, y: event.offsetY};
+       var gridPos = getMouseGridPos(panel, mousePos);
 
 	// we don't drop widgets on top of each other
 	var widgetUnderMouse = getWidgetOnPoint(panel, gridPos);
 	if (!widgetUnderMouse || !widgetUnderMouse.enabled){
-	    var cellSize = getVisibleCellSize(panel);
-	    var gridDelta = subV2(gridPos, panel.dragStart);
-	    var widget = panel.draggedWidget;
-	    var newX = Math.round(widget.WidgetPosition.X + gridDelta.x);
-	    var newY = Math.round(widget.WidgetPosition.Y + gridDelta.y);
-	    if (newX >= 0 &&
-		newX + widget.WidgetSize.X <= canvasGridSize.x &&
-		newY >= 0 &&
-	        newY + widget.WidgetSize.Y <= canvasGridSize.y){
-		widget.WidgetPosition.X = newX;
-		widget.WidgetPosition.Y = newY;
-		drawWidgetPanel(panel);
-		sendWidgetUpdate(widget);
-	    }
-	}
-	panel.isDragging = false;
-    }
+       var cellSize = getVisibleCellSize(panel);
+       var gridDelta = subV2(gridPos, panel.dragStart);
+       var widget = panel.draggedWidget;
+       var newX = Math.round(widget.WidgetPosition.X + gridDelta.x);
+       var newY = Math.round(widget.WidgetPosition.Y + gridDelta.y);
+       if (newX >= 0 &&
+          newX + widget.WidgetSize.X <= canvasGridSize.x &&
+          newY >= 0 &&
+          newY + widget.WidgetSize.Y <= canvasGridSize.y){
+          widget.WidgetPosition.X = newX;
+      widget.WidgetPosition.Y = newY;
+      drawWidgetPanel(panel);
+      sendWidgetUpdate(widget);
+  }
+}
+panel.isDragging = false;
+}
 }
 
 function onWidgetPanelMouseMove(event, panel){
     if (panel.isDragging){
-	console.log("Move");
-    }
+       console.log("Move");
+   }
 }
 
 function drawWidgetPanel(panel){
@@ -165,29 +165,29 @@ function drawWidgetPanel(panel){
     var cellSize = getCellSize(panel);
     ctx.beginPath();
     for (var i = 0; i < canvasGridSize.x+1; i++){
-	var xCoord = i*cellSize.x
-	ctx.moveTo(xCoord, 0);
-	ctx.lineTo(xCoord, panel.canvas.width);
-    }
-    for (var i = 0; i < canvasGridSize.y+1; i++){
-	var yCoord = i*cellSize.x
-	ctx.moveTo(0, yCoord);
-	ctx.lineTo(panel.canvas.height, yCoord);
-    }
-    ctx.strokeStyle = 'black';
-    ctx.stroke();
-    
-    for (var i = 0; i < panel.widgets.length; i++){
-        var widget = panel.widgets[i]
-	if (!widget.enabled){
-	    continue;
-	}
-	var widgetName = widget["WidgetName"];
-	var widgetStyle = widgetStyles[widgetName];
-        ctx.fillStyle = widgetStyle.color;
-	var widgetRect = getWidgetRect(widget, cellSize);
-	ctx.fillRect(widgetRect.x, widgetRect.y, widgetRect.w, widgetRect.h);
-    }
+       var xCoord = i*cellSize.x
+       ctx.moveTo(xCoord, 0);
+       ctx.lineTo(xCoord, panel.canvas.width);
+   }
+   for (var i = 0; i < canvasGridSize.y+1; i++){
+       var yCoord = i*cellSize.x
+       ctx.moveTo(0, yCoord);
+       ctx.lineTo(panel.canvas.height, yCoord);
+   }
+   ctx.strokeStyle = 'black';
+   ctx.stroke();
+
+   for (var i = 0; i < panel.widgets.length; i++){
+    var widget = panel.widgets[i]
+    if (!widget.enabled){
+       continue;
+   }
+   var widgetName = widget["WidgetName"];
+   var widgetStyle = widgetStyles[widgetName];
+   ctx.fillStyle = widgetStyle.color;
+   var widgetRect = getWidgetRect(widget, cellSize);
+   ctx.fillRect(widgetRect.x, widgetRect.y, widgetRect.w, widgetRect.h);
+}
 }
 
 function registerWidgetToInputs(panel, widget, wInput, hInput){
@@ -195,46 +195,61 @@ function registerWidgetToInputs(panel, widget, wInput, hInput){
     hInput.value = widget.WidgetSize.Y;
 
     wInput.addEventListener("input", function(event){
-	var val = Number(wInput.value);
-	if (!isNaN(val) && val > 0 && val < 8)
-	{
-	    widget.WidgetSize.X = val;
-	    drawWidgetPanel(panel);
-	    sendWidgetUpdate(widget);
-	}
-    }, false);
+       var val = Number(wInput.value);
+       if (!isNaN(val) && val > 0 && val < 8)
+       {
+           widget.WidgetSize.X = val;
+           drawWidgetPanel(panel);
+           sendWidgetUpdate(widget);
+       }
+   }, false);
 
     hInput.addEventListener("input", function(event){
-	var val = Number(hInput.value);
-	if (!isNaN(val) && val > 0 && val < 8)
-	{
-	    widget.WidgetSize.Y = val;
-	    drawWidgetPanel(panel);
-	    sendWidgetUpdate(widget);
-	}
-    }, false);
+       var val = Number(hInput.value);
+       if (!isNaN(val) && val > 0 && val < 8)
+       {
+           widget.WidgetSize.Y = val;
+           drawWidgetPanel(panel);
+           sendWidgetUpdate(widget);
+       }
+   }, false);
 }
 
 function switchControlPane(enabled, widgetName, widgetMap){
     if (enabled){
-	document.getElementById(widgetName + "LoginButtonForm").style.display = "none";
-    }
-    else {
-	document.getElementById(widgetName + "SizeForm").style.display = "none";
-    }
-    widgetMap[widgetName].enabled = enabled;
+       document.getElementById(widgetName + "LoginButtonForm").style.display = "none";
+   }
+   else {
+       document.getElementById(widgetName + "SizeForm").style.display = "none";
+   }
+   widgetMap[widgetName].enabled = enabled;
 }
 
 function bindRedirectButton(buttonName, url){
     document.getElementById(buttonName).onclick = function(event){
-	event.preventDefault();
-	window.location.replace(url)
-    };
+       event.preventDefault();
+       window.location.replace(url)
+   };
+}
+
+function bindTeachingButton(button){
+    var id = button.dataset.mirrorid;
+    button.onclick = function(event){
+
+        var request = new XMLHttpRequest();
+        request.open('POST', '/teaching');
+        var content = {
+            "DeviceId": id
+        };
+        request.setRequestHeader('Content-Type', 'application/json');
+        request.send(JSON.stringify(content));
+    }
 }
 
 function initWidgetPanel(widgetSizesRequest){
     if (widgetSizesRequest.readyState != XMLHttpRequest.DONE ||
-        widgetSizesRequest.status != 200){
+        widgetSizesRequest.status != 200)
+    {
         return;
     }
 
@@ -265,7 +280,7 @@ function initWidgetPanel(widgetSizesRequest){
     registerWidgetToInputs(panel, widgetsMap["GoogleTasks"], tasksW, tasksH);
     registerWidgetToInputs(panel, widgetsMap["Twitter"], twitterW, twitterH);
     registerWidgetToInputs(panel, widgetsMap["Gmail"], gmailW, gmailH);
-    
+
     switchControlPane(respJson["Twitter"].logged_in, "Twitter", widgetsMap);
     switchControlPane(respJson["Google"].logged_in, "Gmail", widgetsMap);
     switchControlPane(respJson["Google"].logged_in, "GoogleTasks", widgetsMap);
@@ -278,7 +293,14 @@ function initWidgetPanel(widgetSizesRequest){
     bindRedirectButton("GmailLoginButton", "/google/signin/do");
     bindRedirectButton("GoogleTasksLoginButton", "/google/signin/do");
 
+    var learnButtons = document.getElementsByClassName("learn-button");
+    for (var i = 0; i < learnButtons.length; i++){
+        var btn = learnButtons[i];
+        bindTeachingButton(btn);
+    }
+
     document.getElementById("WidgetsPanelContainer").style.display = "block";
+    document.getElementById("MirrorListContainer").style.display = "block";
     drawWidgetPanel(panel);
 }
 
