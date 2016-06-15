@@ -398,6 +398,7 @@ def mirrorAdd(user_id):
   return jsonify({"Result": "Success"})
 
 @app.route("/mirrors", methods=['DELETE'])
+@app.route("/mirrors/delete", methods=['POST'])
 @requires_login
 def mirrorDelete(user_id):
   body = request.get_json()
