@@ -329,7 +329,9 @@ def twitter_signin(user_id):
 @app.route("/twitter/users/<token>")
 @requires_login_get
 def twitter_user(user_id):
-    return redirect("{}users/{}".format(twitter_url, user_id))
+    url = "{}users/{}".format(twitter_url, user_id)
+    resp = requests.get(url, headers=request_headers)
+    return resp.content,resp.status_code
 
 
 @app.route("/google/signin/<token>", methods=["GET"])
@@ -355,7 +357,9 @@ def twitter_signout(user_id):
 @app.route("/google/users/<token>")
 @requires_login_get
 def google_user(user_id):
-    return redirect("{}users/{}".format(google_url, user_id))
+    url = "{}users/{}".format(google_url,user_id)
+    resp = requests.get(url, headers=request_headers)
+    return resp.content,resp.status_code
 
 
 @app.route("/ad_keywords/<token>", methods=['GET'])
